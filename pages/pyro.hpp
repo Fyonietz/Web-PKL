@@ -37,6 +37,60 @@ extern "C" struct EXPORT Pnix {
 
     return status_code;
   }
+
+  int ResponseAsFile(struct mg_connection *conn, int status_code,
+                     const std::string &status_text, std::string html_file) {
+    // Check if we have an HTML file to serve
+    if (!html_file.empty()) {
+      std::ifstream file(html_file);
+      if (file.is_open()) {
+        // Read the HTML file content
+        std::string html_content((std::istreambuf_iterator<char>(file)),
+                                 std::istreambuf_iterator<char>());
+        file.close();
+
+        // Serve the HTML content with the corresponding status code and headers
+        mg_printf(conn,
+                  "HTTP/1.1 %d %s\r\n"
+                  "Content-Type: text/html\r\n"
+                  "Content-Length: %zu\r\n"
+                  "\r\n"
+                  "%s",
+                  status_code, status_text.c_str(), html_content.length(),
+                  html_content.c_str());
+        return status_code;
+      } else {
+        // If the HTML file can't be opened, return a JSON response as a
+        // fallback
+        std::string error_message = "{\"error\": \"HTML file not found for " +
+                                    std::to_string(status_code) + "\"}";
+        mg_printf(conn,
+                  "HTTP/1.1 %d %s\r\n"
+                  "Content-Type: application/json\r\n"
+                  "Content-Length: %zu\r\n"
+                  "\r\n"
+                  "%s",
+                  status_code, status_text.c_str(), error_message.length(),
+                  error_message.c_str());
+        return status_code;
+      }
+    }
+
+    // If no specific HTML file, return a JSON response with an error message
+    std::string error_message = "{\"error\": \"Unhandled status code " +
+                                std::to_string(status_code) + "\"}";
+    mg_printf(conn,
+              "HTTP/1.1 %d %s\r\n"
+              "Content-Type: application/json\r\n"
+              "Content-Length: %zu\r\n"
+              "\r\n"
+              "%s",
+              status_code, status_text.c_str(), error_message.length(),
+              error_message.c_str());
+
+    return status_code;
+  }
+
   std::string Read(struct mg_connection *connection) {
     std::string body;
     char buffer[2048];

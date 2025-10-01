@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Panel</title>
-    <link rel="stylesheet" href="src/output.css" />
+    <link rel="stylesheet" href="/src/output.css" />
     <style>
       /* Modal Animations */
       @keyframes fadeIn {
@@ -328,7 +328,7 @@
                 Edit Profile
               </button>
               <button
-                onclick="handleLogout()"
+                onclick="window.location.href='http://localhost:9001/logout'"
                 class="flex items-center gap-3 px-4 py-3 w-full text-left text-red-600 hover:bg-red-50 transition"
               >
                 <!-- Logout Icon -->
@@ -742,7 +742,7 @@
               </button>
               
               <button
-                onclick="handleLogout()"
+                onclick="window.location.href=/logout"
                 class="flex items-center gap-3 px-4 py-2 w-full text-left text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -813,6 +813,6 @@
     <!-- Mobile Overlay -->
     <div id="mobileOverlay" class="hidden fixed inset-0 bg-black bg-opacity-40 z-30 md:hidden"></div>
 
-    <script src="js/navbar.js"></script>
+    <script src="/js/navbar.js"></script>
   </body>
 </html>

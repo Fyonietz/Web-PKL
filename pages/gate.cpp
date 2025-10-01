@@ -62,7 +62,7 @@ route("/api/login", login) {
     std::string redirect_url;
     switch (user) {
     case Auth::Roles::Operator:
-      redirect_url = "/admin/dashboard";
+      redirect_url = "/dashboard/admin";
       break;
     case Auth::Roles::Kaprodi:
       redirect_url = "/kaprodi/home";
@@ -109,4 +109,14 @@ route("/login", login_pages) {
   Server.SSR("public/login.html", connection);
 
   return 200;
+}
+
+route("/logout", logout) {
+  mg_printf(connection, "HTTP/1.1 302 Found\r\n"
+                        "Location: /login\r\n"
+                        "Set-Cookie: auth_token=; Path=/; Expires=Thu, 01 Jan "
+                        "1970 00:00:00 GMT\r\n"
+                        "Content-Length: 0\r\n"
+                        "Connection: close\r\n\r\n");
+  return 302;
 }

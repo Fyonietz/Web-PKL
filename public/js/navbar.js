@@ -406,32 +406,17 @@ function updateProfileData(profileData) {
 }
 
 // Logout action
-function handleLogout() {
-  closeAllDropdowns();
 
-  // Close mobile menu if open
-  mobileMenu.classList.add("hidden");
-  mobileOverlay.classList.add("hidden");
-  mobileMenuIcon.classList.remove("hidden");
-  mobileCloseIcon.classList.add("hidden");
-
-  // Show logout confirmation
-  const confirmLogout = confirm("Apakah Anda yakin ingin logout?");
-
-  if (confirmLogout) {
-    // Clear any stored user data
-    localStorage.removeItem("userProfile");
-    localStorage.removeItem("authToken");
-
-    showStatus("Logout berhasil! Mengalihkan ke halaman login...", "success");
-
-    // Redirect to login page
-    setTimeout(() => {
-      window.location.href = "login.html";
-    }, 2000);
+function handlelogout() {
+  // Ask for confirmation
+  if (confirm("Are you sure you want to log out?")) {
+    // Clear the auth_token cookie
+    document.cookie = "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Strict; Secure; HttpOnly";
+    
+    // Redirect to the logout route on the server
+    window.location.href = '/logout';
   }
 }
-
 // Responsive handling
 window.addEventListener("resize", () => {
   if (window.innerWidth >= 768) {
