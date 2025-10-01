@@ -16,12 +16,14 @@ target_include_directories(routes
 )
 
 # Link routes to all required dependencies
-target_link_libraries(routes PRIVATE 
-    core_static 
-    civetweb 
-    pthread 
+target_link_libraries(routes PRIVATE
+    core_static
+    civetweb
+    pthread
     dl
     sqlite3
+    ssl
+    crypto
 )
 
 set_target_properties(routes PROPERTIES

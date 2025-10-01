@@ -3,7 +3,7 @@ project(Web-PKL)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
-
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Source files
 file(GLOB_RECURSE MAIN "main.cpp")
 file(GLOB_RECURSE CIVET_C "libs/Civet/civetweb.c")
@@ -18,13 +18,13 @@ add_definitions(-DNO_SSL)
 # Core static library
 add_library(core_static STATIC ${CORE_SOURCES})
 set_target_properties(core_static PROPERTIES POSITION_INDEPENDENT_CODE ON)
-target_include_directories(core_static 
-    PRIVATE core 
+target_include_directories(core_static
+    PRIVATE core
     PRIVATE libs
     PUBLIC /usr/include
 )
 target_link_libraries(core_static PRIVATE civetweb)
-
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -g")
 # Add routes dynamic library
 add_subdirectory(routes)
 
@@ -35,6 +35,8 @@ target_include_directories(${PROJECT_NAME}
     PRIVATE libs
     PUBLIC /usr/include/
     sqlite3
+    ssl
+    crypto
 )
 
 # Link main executable to dependencies
@@ -42,7 +44,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE core_static civetweb pthread dl sq
 
 # Platform-specific definitions
 if (WIN32)
-    add_definitions(-DNO_SSL)
+  add_definitions(-DNO_SSL)
 else()
-    add_definitions(-DNO_SSL -DLINUX)
+  add_definitions(-DNO_SSL -DLINUX)
 endif()

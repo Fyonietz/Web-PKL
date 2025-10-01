@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Admin Panel</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            animation: {
+              "fade-in": "fadeIn 0.5s ease-in-out",
+              "slide-up": "slideUp 0.5s ease-out",
+              "bounce-subtle": "bounceSubtle 0.6s ease-in-out",
+            },
+            keyframes: {
+              fadeIn: {
+                "0%": { opacity: "0" },
+                "100%": { opacity: "1" },
+              },
+              slideUp: {
+                "0%": { transform: "translateY(20px)", opacity: "0" },
+                "100%": { transform: "translateY(0)", opacity: "1" },
+              },
+              bounceSubtle: {
+                "0%, 20%, 50%, 80%, 100%": { transform: "translateY(0)" },
+                "40%": { transform: "translateY(-4px)" },
+                "60%": { transform: "translateY(-2px)" },
+              },
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+    <body
+    class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4"
+  >
+    <div class="relative w-full max-w-md animate-slide-up">
+      <div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
+        <div class="px-8 pt-8 pb-6 text-center">
+          <div
+            class="w-20 h-20 mx-auto mb-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg animate-bounce-subtle"
+          >
+            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              ></path>
+            </svg>
+          </div>
+          <h1 class="text-3xl font-bold text-gray-800 mb-2">Welcome Back</h1>
+          <p class="text-gray-600">Please sign in to your account</p>
+        </div>
+
+        <!-- Form Section -->
+        <form id="loginForm" class="px-8 pb-8" onsubmit="handleSubmit(event)">
+          <!-- Username Input -->
+          <div class="mb-4">
+            <label for="username" class="block text-sm font-semibold text-gray-700 mb-2">
+              Username
+            </label>
+            <div class="relative">
+              <input
+                type="text"
+                id="username"
+                name="username"
+                class="w-full py-3 pl-4 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white/50 backdrop-blur-sm placeholder-gray-400"
+                placeholder="Enter your username"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- Password Input -->
+          <div class="mb-8">
+            <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
+              Password
+            </label>
+            <div class="relative">
+              <div
+                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+              >
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  ></path>
+                </svg>
+              </div>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                class="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white/50 backdrop-blur-sm placeholder-gray-400"
+                placeholder="Enter your password"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between mb-6">
+            <label class="flex items-center">
+              <input
+                type="checkbox"
+                id="remember"
+                name="remember"
+                class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              />
+              <span class="ml-2 text-sm text-gray-600">Remember me</span>
+            </label>
+            <a
+              href="#"
+              class="text-sm text-blue-600 hover:text-blue-800 font-semibold transition-colors"
+            >
+              Forgot password?
+            </a>
+          </div>
+
+          <button
+            type="submit"
+            id="loginBtn"
+            class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 px-4 rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+          >
+            <span id="loginText">Sign In</span>
+            <div id="loginSpinner" class="hidden">
+              <svg
+                class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Signing in...
+            </div>
+          </button>
+        </form>
+
+        <div class="mt-6 mb-4">
+          <div class="relative">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-gray-300"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+              <span class="px-2 bg-white text-gray-500">or sign up</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="js/login.js"></script>
+  </html>
+

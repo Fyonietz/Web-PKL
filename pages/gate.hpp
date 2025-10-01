@@ -1,0 +1,5 @@
+#ifndef GATE
+
+
+
+#endif // !GATE
