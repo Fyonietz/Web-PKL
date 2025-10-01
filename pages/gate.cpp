@@ -82,9 +82,22 @@ route("/api/login", login) {
     }
 
     // Now, perform the redirect
-    return Server.Response(connection, 302, "Redirecting",
-                           R"({"redirect_url":")" + redirect_url + R"("})");
+    // Set the token in a cookie (using mg_printf)
+    std::string cookie =
+        "auth_token=" + token +
+        "; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=3600"; // Expires
+                                                                     // in 1
+                                                                     // hour
 
+    // Send Set-Cookie header manually using mg_printf (CivetWeb)
+    mg_printf(connection,
+              "HTTP/1.1 200 OK\r\n"
+              "Content-Type: application/json\r\n"
+              "Set-Cookie: %s\r\n"
+              "Connection: close\r\n\r\n"
+              "{\"success\": true, \"redirect\": \"%s\"}",
+              cookie.c_str(), redirect_url.c_str());
+    return 302;
   } catch (const std::exception &e) {
     Sqlite_Close();
     return Server.Response(connection, 500, "Error",

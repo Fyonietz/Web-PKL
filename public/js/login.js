@@ -26,12 +26,12 @@ async function handleSubmit(event) {
         console.log(result);
 
         // Check for successful response and redirect
-        if (response.ok && result.redirect_url) {
+        if (response.ok && result.redirect) { // Corrected key here
             // Redirect to the URL provided by the server
-            window.location.href = result.redirect_url;
+            window.location.href = result.redirect;
         } else {
             // If login fails, show error message
-            alert("Login failed: " + (result.message || "Unknown error"));
+            alert("Login failed: " + (result.error || "Unknown error"));
         }
     } catch (error) {
         alert("An error occurred: " + error);
