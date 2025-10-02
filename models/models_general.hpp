@@ -48,4 +48,5 @@ struct users {
   std::string perusahaan;
   std::string pembimbing;
   std::string roles;
+  std::string kelas;
 };
