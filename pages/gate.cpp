@@ -22,9 +22,9 @@ route("/api/login", login) {
   auto user_mapper = user_binder.parse_one(post_as_json);
 
   // Tokenize the password and create a token
-  std::string recipe = user_mapper.nama + user_mapper.password;
+  std::string recipe =
+      user_mapper.nama + user_mapper.password + "walataqrobuzina";
   std::string token = Auth::tokenizer(recipe);
-
   Auth::Roles user;
 
   // Check in Database
