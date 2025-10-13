@@ -1,11 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title></title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>401 Unauthorized</title>
+    <link rel="stylesheet" href="/src/output.css" />
   </head>
-  <body>
-    <h1>Balek Lagi Bang</h1>
+  <body
+    class="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-gray-800 animate-fadeIn"
+  >
+    <div
+      class="flex flex-col items-center justify-center text-center px-8 py-14 rounded-3xl shadow-2xl bg-gradient-to-b from-gray-950 via-black to-gray-900 border-2 border-gray-800 max-w-lg w-full animate-fadeIn"
+    >
+      <div class="flex flex-col items-center justify-center text-center px-4 py-10 md:px-8 md:py-14 rounded-none md:rounded-3xl shadow-2xl bg-gradient-to-b from-gray-950 via-black to-gray-900 border-0 md:border-2 border-gray-800 w-full h-full min-h-screen animate-fadeIn">
+      <div class="mb-6">
+        <span
+          class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-900 via-black to-red-900 shadow-xl animate-pulse"
+        >
+          <svg
+            class="w-10 h-10 text-blue-400 drop-shadow-neon"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 17v.01M6.938 15.016A7.002 7.002 0 0112 5a7.002 7.002 0 015.062 10.016M17 13v-2a5 5 0 00-10 0v2m10 0a2 2 0 11-4 0 2 2 0 014 0z"
+            />
+          </svg>
+        </span>
+      </div>
+      <h1
+        class="text-6xl font-extrabold text-white mb-4 tracking-tight font-sans animate-fadeIn"
+      >
+        401 Unauthorized
+      </h1>
+      <p
+        class="text-2xl text-blue-300 mb-8 font-semibold font-sans animate-fadeIn"
+      >
+        Oops! Kamu tidak punya akses ke halaman ini.<br /><span
+          class="text-lg text-gray-400 font-normal"
+          >Silakan login dengan akun yang benar.</span
+        >
+      </p>
+      <div class="flex gap-2 justify-center">
+        <span
+          class="px-5 py-2 rounded-xl bg-gray-900 text-blue-400 font-bold text-base border border-gray-700 select-none"
+          >Error Code: 401</span
+        >
+      </div>
+    </div>
+    <style>
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      .animate-fadeIn {
+        animation: fadeIn 1s ease;
+      }
+      .drop-shadow-neon {
+        filter: drop-shadow(0 0 12px #3b82f6) drop-shadow(0 0 24px #ef4444);
+      }
+    </style>
   </body>
 </html>

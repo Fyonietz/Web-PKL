@@ -1,7 +1,11 @@
 #include "../models/models_general.hpp"
 #include "Phoenix/middleware.hpp"
+#include "civetweb.h"
 #include "handler.hpp"
+#include <exception>
 #include <iostream>
+#include <iterator>
+#include <string>
 #define OK(connection)                                                         \
   Server.Response(connection, 200, "Ok", R"({"message":"success"})")
 using namespace Middleware;
@@ -49,7 +53,57 @@ route("/dashboard/admin", dashboard_admin) {
   return Server.ResponseAsFile(connection, 401, "Unauthorized",
                                "public/401.html");
 }
+route("/dashboard/admin/akun/lists", admin_akun) {
+  try {
+    auto authInfo = CheckAuthToken(connection, Auth::Roles::Operator);
+    if (!authInfo) {
+      Server.ResponseAsFile(connection, 401, "Unauthorized", "public/401.html");
+      return 401;
+    }
 
+    Server.static_serve("public/admin/pantauAkun.html", connection);
+  } catch (...) {
+    return Server.Response(connection, 500, "Internal Server Error", "");
+  }
+
+  return 200;
+}
+route("/dashboard/admin/akun/crud", admin_akun_crud) {
+  try {
+    auto authInfo = CheckAuthToken(connection, Auth::Roles::Operator);
+    if (!authInfo) {
+      Server.ResponseAsFile(connection, 401, "Unauthorized", "public/401.html");
+      return 401;
+    }
+
+    Server.static_serve("public/admin/crudAkun.html", connection);
+  } catch (...) {
+    return Server.Response(connection, 500, "Internal Server Error", "");
+  }
+
+  return 200;
+}
+route("/api/ext/roles", roles_get) {
+  try {
+    auto authInfo = CheckAuthToken(connection, Auth::Roles::Operator);
+    if (!authInfo) {
+      Server.ResponseAsFile(connection, 401, "Unauthorized", "public/401.html");
+      return 401;
+    }
+
+    Sqlite3 db;
+    if (Sqlite_Open()) {
+      nlohmann::json query = sqlite.SELECT("nama").FROM("roles").JSON();
+      Sqlite_Close();
+      return Server.Response(connection, 200, "OK", query.dump(4));
+    } else {
+      return Server.Response(connection, 500, "Database Error", "");
+    }
+  } catch (...) {
+    return Server.Response(connection, 500, "Internal Server Error", "");
+  }
+  return 200;
+};
 route("/api/admin/user/create", admin_create_user) {
   try {
     const char *cookie_header = mg_get_header(connection, "Cookie");

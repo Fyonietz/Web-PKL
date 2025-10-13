@@ -33,6 +33,7 @@ struct perusahaan {
   std::string id;
   std::string nama;
   std::string password;
+  std::string benefit;
   std::string jurusan;
   std::string alamat;
   std::string kuota;

@@ -5,8 +5,10 @@
 #include "../libs/Phoenix/controller.hpp"
 #include "../libs/Phoenix/middleware.hpp"
 #include "../libs/Phoenix/sqlite3.hpp"
+#include "../libs/json.hpp"
 #include "../routes/register.hpp"
 #include "pyro.hpp"
+#include <optional>
 #include <string>
 #ifdef _WIN32
 #define EXPORT __declspec(dllexport)
@@ -25,7 +27,9 @@ struct mg_connection;
 EXPORT int default_handler(struct mg_connection *connection,
                            void * /*callbackdata*/);
 EXPORT int home(struct mg_connection *connection, void *callback);
-
+EXPORT std::optional<nlohmann::json> CheckAuthToken(
+    struct mg_connection *conn,
+    std::optional<Middleware::Auth::Roles> requiredRole);
 // Even simpler - no EXPORT in macro
 #define route(PATH, NAME)                                                      \
   int NAME(struct mg_connection *connection, void *cb);                        \

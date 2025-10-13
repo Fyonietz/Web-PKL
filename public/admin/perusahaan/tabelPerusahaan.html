@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Company</title>
+    <link rel="stylesheet" href="/src/output.css" />
+  </head>
+  <body class="bg-white">
+    <div
+      class="w-full bg-white rounded-xl shadow-lg border border-gray-200 mt-4 mb-4 p-2 md:p-8"
+    >
+      <div
+        class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4"
+      >
+        <h2 class="text-2xl font-bold">Manage Company</h2>
+        <div class="flex gap-2">
+          <input
+            type="text"
+            class="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Cari perusahaan..."
+          />
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table
+          class="min-w-full w-full table-auto border-collapse text-xs md:text-base"
+        >
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700">
+                IMAGE
+              </th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700">
+                NAMA
+              </th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700">
+                ALAMAT
+              </th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700">
+                KUOTA
+              </th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700">
+                ACTIONS
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Contoh data, ganti dengan data dinamis sesuai kebutuhan -->
+            <tr class="border-b">
+              <td class="px-4 py-3">
+                <img
+                  src="/img/tefa.jpg"
+                  alt="Company"
+                  class="w-16 h-16 rounded object-cover"
+                />
+              </td>
+              <td class="px-4 py-3 font-medium">PT Tefa Jaya</td>
+              <td class="px-4 py-3">Jl. Merdeka No. 123, Jakarta</td>
+              <td class="px-4 py-3">10</td>
+              <td class="px-4 py-3 flex gap-2">
+                <button
+                  class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+                >
+                  Edit
+                </button>
+                <button
+                  class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+            <tr class="border-b">
+              <td class="px-4 py-3">
+                <img
+                  src="/img/firefly.jpeg"
+                  alt="Company"
+                  class="w-16 h-16 rounded object-cover"
+                />
+              </td>
+              <td class="px-4 py-3 font-medium">CV Firefly</td>
+              <td class="px-4 py-3">Jl. Api Unggun No. 45, Bandung</td>
+              <td class="px-4 py-3">5</td>
+              <td class="px-4 py-3 flex gap-2">
+                <button
+                  class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+                >
+                  Edit
+                </button>
+                <button
+                  class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+            <tr class="border-b">
+              <td class="px-4 py-3">
+                <img
+                  src="/img/march 7.jpeg"
+                  alt="Company"
+                  class="w-16 h-16 rounded object-cover"
+                />
+              </td>
+              <td class="px-4 py-3 font-medium">PT March 7</td>
+              <td class="px-4 py-3">Jl. Bintang No. 7, Surabaya</td>
+              <td class="px-4 py-3">8</td>
+              <td class="px-4 py-3 flex gap-2">
+                <button
+                  class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+                >
+                  Edit
+                </button>
+                <button
+                  class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="flex justify-between items-center mt-6">
+        <div class="text-sm text-gray-500">Showing 1 to 3 of 3 entries</div>
+        <div class="flex gap-1">
+          <button class="px-3 py-1 rounded border bg-white text-gray-700">
+            &lt;
+          </button>
+          <button class="px-3 py-1 rounded border bg-blue-600 text-white">
+            1
+          </button>
+          <button class="px-3 py-1 rounded border bg-white text-gray-700">
+            2
+          </button>
+          <button class="px-3 py-1 rounded border bg-white text-gray-700">
+            &gt;
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
