@@ -124,3 +124,58 @@ EXPORT std::optional<nlohmann::json> CheckAuthToken(
 
   return result[0]; // Contains `role` and `nama`
 }
+
+EXPORT int CORSWithAuth(struct mg_connection *conn,
+                        const struct mg_request_info *req_info,
+                        const std::string &allowed_origin,
+                        std::optional<Middleware::Auth::Roles> requiredRole,
+                        nlohmann::json *userInfo) {
+
+  // Handle OPTIONS preflight first
+  if (std::string(req_info->request_method) == "OPTIONS") {
+    mg_printf(
+        conn,
+        "HTTP/1.1 204 No Content\r\n"
+        "Access-Control-Allow-Origin: %s\r\n"
+        "Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE, PUT\r\n"
+        "Access-Control-Allow-Headers: Content-Type\r\n"
+        "Access-Control-Allow-Credentials: true\r\n"
+        "Access-Control-Max-Age: 86400\r\n"
+        "Connection: close\r\n\r\n",
+        allowed_origin.c_str());
+    return 1; // OPTIONS handled
+  }
+
+  // Check authentication
+  auto authResult = CheckAuthToken(conn, requiredRole);
+
+  if (!authResult.has_value()) {
+    // Auth failed - send 401 with CORS headers
+    std::string error_msg =
+        requiredRole.has_value()
+            ? R"({"error":"Unauthorized: Invalid token or insufficient permissions"})"
+            : R"({"error":"Unauthorized: No valid authentication token"})";
+
+    mg_printf(
+        conn,
+        "HTTP/1.1 401 Unauthorized\r\n"
+        "Content-Type: application/json\r\n"
+        "Access-Control-Allow-Origin: %s\r\n"
+        "Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE, PUT\r\n"
+        "Access-Control-Allow-Headers: Content-Type\r\n"
+        "Access-Control-Allow-Credentials: true\r\n"
+        "Content-Length: %zu\r\n"
+        "Connection: close\r\n"
+        "\r\n"
+        "%s",
+        allowed_origin.c_str(), error_msg.length(), error_msg.c_str());
+    return 401;
+  }
+
+  // Auth succeeded - populate user info if pointer provided
+  if (userInfo != nullptr) {
+    *userInfo = authResult.value();
+  }
+
+  return 0; // Continue with route logic
+}

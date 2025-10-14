@@ -38,6 +38,64 @@ extern "C" struct EXPORT Pnix {
     return status_code;
   }
 
+  // Handle preflight (OPTIONS) with specific allowed origin
+  bool CORS(struct mg_connection *conn, const struct mg_request_info *req_info,
+            const std::string &allowed_origin) {
+    if (std::string(req_info->request_method) == "OPTIONS") {
+      mg_printf(conn,
+                "HTTP/1.1 204 No Content\r\n"
+                "Access-Control-Allow-Origin: %s\r\n"
+                "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n"
+                "Access-Control-Allow-Headers: Content-Type\r\n"
+                "Access-Control-Allow-Credentials: true\r\n"
+                "Access-Control-Max-Age: 86400\r\n"
+                "Connection: close\r\n\r\n",
+                allowed_origin.c_str());
+      return true; // CORS preflight handled
+    }
+    return false; // Continue normal flow
+  }
+
+  // Send actual response with CORS headers (without cookies)
+  int CORS(struct mg_connection *conn, int status_code,
+           const std::string &status_text, const std::string &json_body,
+           const std::string &allowed_origin) {
+    mg_printf(conn,
+              "HTTP/1.1 %d %s\r\n"
+              "Content-Type: application/json\r\n"
+              "Access-Control-Allow-Origin: %s\r\n"
+              "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n"
+              "Access-Control-Allow-Headers: Content-Type\r\n"
+              "Access-Control-Allow-Credentials: true\r\n"
+              "Content-Length: %zu\r\n"
+              "Connection: close\r\n"
+              "\r\n"
+              "%s",
+              status_code, status_text.c_str(), allowed_origin.c_str(),
+              json_body.length(), json_body.c_str());
+    return status_code;
+  }
+
+  // Send actual response with CORS headers AND cookies
+  int CORS(struct mg_connection *conn, int status_code,
+           const std::string &status_text, const std::string &json_body,
+           const std::string &allowed_origin, const std::string &cookie) {
+    mg_printf(conn,
+              "HTTP/1.1 %d %s\r\n"
+              "Content-Type: application/json\r\n"
+              "Access-Control-Allow-Origin: %s\r\n"
+              "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n"
+              "Access-Control-Allow-Headers: Content-Type\r\n"
+              "Access-Control-Allow-Credentials: true\r\n"
+              "Set-Cookie: %s\r\n"
+              "Content-Length: %zu\r\n"
+              "Connection: close\r\n"
+              "\r\n"
+              "%s",
+              status_code, status_text.c_str(), allowed_origin.c_str(),
+              cookie.c_str(), json_body.length(), json_body.c_str());
+    return status_code;
+  }
   int ResponseAsFile(struct mg_connection *conn, int status_code,
                      const std::string &status_text, std::string html_file) {
     // Check if we have an HTML file to serve

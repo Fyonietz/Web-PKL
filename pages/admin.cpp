@@ -6,147 +6,99 @@
 #include <iostream>
 #include <iterator>
 #include <string>
+
 #define OK(connection)                                                         \
   Server.Response(connection, 200, "Ok", R"({"message":"success"})")
+
 using namespace Middleware;
 
+// Dashboard admin page
 route("/dashboard/admin", dashboard_admin) {
-  const char *cookie_header = mg_get_header(connection, "Cookie");
-  if (cookie_header) {
-    std::string cookies(cookie_header);
-    std::string tokenKey = "auth_token=";
-    size_t tokenPos = cookies.find(tokenKey);
+  auto authInfo = CheckAuthToken(connection, Auth::Roles::Operator);
 
-    if (tokenPos != std::string::npos) {
-      size_t start = tokenPos + tokenKey.length();
-      size_t end = cookies.find(";", start);
-      std::string token = cookies.substr(
-          start, (end == std::string::npos) ? std::string::npos : end - start);
-
-      // Open database connection
-      Sqlite3 db;
-      if (Sqlite_Open()) {
-        nlohmann::json checker = sqlite.SELECT("role, nama")
-                                     .FROM("users")
-                                     .WHERE("token=" + Escape(token))
-                                     .JSON();
-
-        Sqlite_Close();
-
-        // Ensure valid token and user role exist
-        if (checker.is_array() && !checker.empty()) {
-          // Extract role from the checker JSON
-          std::string role = checker[0]["role"];
-
-          // Check if the role is authorized for this page
-          if (role == Auth::roleToStr(Auth::Roles::Operator)) {
-            // Serve the admin dashboard HTML
-            Server.static_serve("public/admin/dashboardAdmin.html", connection);
-            return 200; // Success
-          }
-        }
-      }
-    }
+  if (!authInfo) {
+    return Server.ResponseAsFile(connection, 401, "Unauthorized",
+                                 "public/401.html");
   }
 
-  // If no token or invalid token, return Unauthorized (401)
-  return Server.ResponseAsFile(connection, 401, "Unauthorized",
-                               "public/401.html");
+  // User is authorized as Operator, serve the admin dashboard
+  Server.static_serve("public/admin/dashboardAdmin.html", connection);
+  return 200;
 }
+
+// Admin account lists page
 route("/dashboard/admin/akun/lists", admin_akun) {
-  try {
-    auto authInfo = CheckAuthToken(connection, Auth::Roles::Operator);
-    if (!authInfo) {
-      Server.ResponseAsFile(connection, 401, "Unauthorized", "public/401.html");
-      return 401;
-    }
+  auto authInfo = CheckAuthToken(connection, Auth::Roles::Operator);
 
-    Server.static_serve("public/admin/pantauAkun.html", connection);
-  } catch (...) {
-    return Server.Response(connection, 500, "Internal Server Error", "");
+  if (!authInfo) {
+    return Server.ResponseAsFile(connection, 401, "Unauthorized",
+                                 "public/401.html");
   }
 
+  Server.static_serve("public/admin/pantauAkun.html", connection);
   return 200;
 }
+
+// Admin account CRUD page
 route("/dashboard/admin/akun/crud", admin_akun_crud) {
-  try {
-    auto authInfo = CheckAuthToken(connection, Auth::Roles::Operator);
-    if (!authInfo) {
-      Server.ResponseAsFile(connection, 401, "Unauthorized", "public/401.html");
-      return 401;
-    }
+  auto authInfo = CheckAuthToken(connection, Auth::Roles::Operator);
 
-    Server.static_serve("public/admin/crudAkun.html", connection);
-  } catch (...) {
-    return Server.Response(connection, 500, "Internal Server Error", "");
+  if (!authInfo) {
+    return Server.ResponseAsFile(connection, 401, "Unauthorized",
+                                 "public/401.html");
   }
 
+  Server.static_serve("public/admin/crudAkun.html", connection);
   return 200;
 }
+
+// API: Get roles list
 route("/api/ext/roles", roles_get) {
-  try {
-    auto authInfo = CheckAuthToken(connection, Auth::Roles::Operator);
-    if (!authInfo) {
-      Server.ResponseAsFile(connection, 401, "Unauthorized", "public/401.html");
-      return 401;
-    }
+  const struct mg_request_info *req_info = mg_get_request_info(connection);
+  nlohmann::json userInfo;
 
+  // Handle CORS + Auth
+  int authResult = CORSWithAuth(connection, req_info, IP_ORIGIN,
+                                Auth::Roles::Operator, &userInfo);
+  if (authResult != 0)
+    return authResult;
+
+  try {
     Sqlite3 db;
-    if (Sqlite_Open()) {
-      nlohmann::json query = sqlite.SELECT("nama").FROM("roles").JSON();
-      Sqlite_Close();
-      return Server.Response(connection, 200, "OK", query.dump(4));
-    } else {
-      return Server.Response(connection, 500, "Database Error", "");
+    if (!Sqlite_Open()) {
+      return Server.CORS(connection, 500, "Internal Server Error",
+                         R"({"error":"Failed to open database"})", IP_ORIGIN);
     }
-  } catch (...) {
-    return Server.Response(connection, 500, "Internal Server Error", "");
+
+    nlohmann::json query = sqlite.SELECT("nama").FROM("roles").JSON();
+    Sqlite_Close();
+
+    return Server.CORS(connection, 200, "OK", query.dump(4), IP_ORIGIN);
+
+  } catch (const std::exception &e) {
+    std::cerr << "[Exception] " << e.what() << std::endl;
+    return Server.CORS(connection, 500, "Internal Server Error",
+                       R"({"error":"Internal server error"})", IP_ORIGIN);
   }
-  return 200;
-};
+}
+
+// API: Create new user
 route("/api/admin/user/create", admin_create_user) {
+  const struct mg_request_info *req_info = mg_get_request_info(connection);
+  nlohmann::json userInfo;
+
+  // Handle CORS + Auth
+  int authResult = CORSWithAuth(connection, req_info, IP_ORIGIN,
+                                Auth::Roles::Operator, &userInfo);
+  if (authResult != 0)
+    return authResult;
+
   try {
-    const char *cookie_header = mg_get_header(connection, "Cookie");
-
-    if (cookie_header) {
-      std::string cookies(cookie_header);
-      std::string tokenKey = "auth_token=";
-      size_t tokenPos = cookies.find(tokenKey);
-
-      if (tokenPos != std::string::npos) {
-        size_t start = tokenPos + tokenKey.length();
-        size_t end = cookies.find(";", start);
-        std::string token =
-            cookies.substr(start, (end == std::string::npos) ? std::string::npos
-                                                             : end - start);
-
-        // Open database connection
-        Sqlite3 db;
-        if (Sqlite_Open()) {
-          nlohmann::json checker = sqlite.SELECT("role, nama")
-                                       .FROM("users")
-                                       .WHERE("token=" + Escape(token))
-                                       .JSON();
-
-          Sqlite_Close();
-
-          if (checker.is_array() && !checker.empty()) {
-            std::string role = checker[0]["role"];
-            if (role != Auth::roleToStr(Auth::Roles::Operator)) {
-              Server.ResponseAsFile(connection, 401, "Unauthorized",
-                                    "public/401.html");
-              return 401;
-            }
-          }
-        }
-      }
-    }
-
-    // Read Post Data (moved inside try to catch bad JSON)
+    // Read and parse POST data
     nlohmann::json post_as_json =
         nlohmann::json::parse(Server.Read(connection));
 
-    Sqlite3 db;
+    // Bind user model
     Model<users> user_binder;
     user_binder.bind("nama", &users::nama)
         .bind("password", &users::password)
@@ -155,31 +107,74 @@ route("/api/admin/user/create", admin_create_user) {
         .bind("kelas", &users::kelas);
 
     auto user_mapper = user_binder.parse_one(post_as_json);
+
+    // Generate token
     std::string recipe =
         user_mapper.nama + user_mapper.password + "walataqrobuzina";
     std::string token = Auth::tokenizer(recipe);
 
-    if (Sqlite_Open()) {
-      sqlite
-          .INSERT("users", "(nama,password,role,jurusan,kelas,token)",
-                  "(" + Escape(user_mapper.nama) + "," +
-                      Escape(user_mapper.password) + "," +
-                      Escape(user_mapper.roles) + "," +
-                      Escape(user_mapper.jurusan) + "," +
-                      Escape(user_mapper.kelas) + "," + Escape(token) + ")")
-          .execute();
-      Sqlite_Close();
+    // Insert into database
+    Sqlite3 db;
+    if (!Sqlite_Open()) {
+      return Server.CORS(connection, 500, "Internal Server Error",
+                         R"({"error":"Failed to open database"})", IP_ORIGIN);
     }
+
+    sqlite
+        .INSERT("users", "(nama,password,role,jurusan,kelas,token)",
+                "(" + Escape(user_mapper.nama) + "," +
+                    Escape(user_mapper.password) + "," +
+                    Escape(user_mapper.roles) + "," +
+                    Escape(user_mapper.jurusan) + "," +
+                    Escape(user_mapper.kelas) + "," + Escape(token) + ")")
+        .execute();
+
+    Sqlite_Close();
+
+    return Server.CORS(
+        connection, 200, "OK",
+        R"({"success":true,"message":"User created successfully"})", IP_ORIGIN);
+
   } catch (const nlohmann::json::exception &je) {
     std::cerr << "[JSON Error] " << je.what() << std::endl;
-    return Server.Response(connection, 400, "Invalid JSON", "");
+    return Server.CORS(connection, 400, "Bad Request",
+                       R"({"error":"Invalid JSON format"})", IP_ORIGIN);
   } catch (const std::exception &e) {
     std::cerr << "[Exception] " << e.what() << std::endl;
-    return Server.Response(connection, 500, "Internal Server Error", "");
-  } catch (...) {
-    std::cerr << "[Unknown Exception]" << std::endl;
-    return Server.Response(connection, 500, "Internal Server Error", "");
+    return Server.CORS(connection, 500, "Internal Server Error",
+                       R"({"error":"Internal server error"})", IP_ORIGIN);
   }
+}
 
-  return 200;
-};
+// API: Get user lists
+route("/api/admin/user/lists", user_lists) {
+  const struct mg_request_info *req_info = mg_get_request_info(connection);
+  nlohmann::json userInfo;
+
+  // Handle CORS + Auth
+  int authResult = CORSWithAuth(connection, req_info, IP_ORIGIN,
+                                Auth::Roles::Operator, &userInfo);
+  if (authResult != 0)
+    return authResult;
+
+  try {
+    Sqlite3 db;
+    if (!Sqlite_Open()) {
+      return Server.CORS(connection, 500, "Internal Server Error",
+                         R"({"error":"Failed to open database"})", IP_ORIGIN);
+    }
+
+    nlohmann::json query = sqlite.SELECT("id,nama,password,jurusan,role,kelas")
+                               .FROM("users")
+                               .JSON();
+
+    Sqlite_Close();
+
+    return Server.CORS(connection, 200, "OK", query.dump(4), IP_ORIGIN);
+
+  } catch (const std::exception &e) {
+    std::cerr << "[Exception] " << e.what() << std::endl;
+    return Server.CORS(connection, 500, "Internal Server Error",
+                       R"({"error":"Internal server error"})", IP_ORIGIN);
+  }
+}

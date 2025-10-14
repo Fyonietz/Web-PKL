@@ -39,6 +39,11 @@ route("/dashboard/admin/perusahaan/lists", admin_perusahaan_lists) {
 // Create Perusahaan
 route("/api/perusahaan/create", create_perusahaan) {
   try {
+    const struct mg_request_info *req_info = mg_get_request_info(connection);
+
+    // Automatically handle OPTIONS
+    if (Server.CORS(connection, req_info, IP))
+      return 1;
     auto authInfo = CheckAuthToken(connection, Auth::Roles::Operator);
     if (!authInfo) {
       Server.ResponseAsFile(connection, 401, "Unauthorized", "public/401.html");
@@ -64,17 +69,17 @@ route("/api/perusahaan/create", create_perusahaan) {
                       Escape(perusahaan_mapper.kuota) + ")")
           .execute();
       Sqlite_Close();
-      return Server.Response(connection, 200, "OK", "");
+      return Server.CORS(connection, 200, "OK", "", IP);
     }
   } catch (const nlohmann::json::exception &je) {
     std::cerr << "[JSON Error] " << je.what() << std::endl;
-    return Server.Response(connection, 400, "Invalid JSON", "");
+    return Server.CORS(connection, 400, "Invalid JSON", "", IP);
   } catch (const std::exception &e) {
     std::cerr << "[Exception] " << e.what() << std::endl;
-    return Server.Response(connection, 500, "Internal Server Error", "");
+    return Server.CORS(connection, 500, "Internal Server Error", "", IP);
   } catch (...) {
     std::cerr << "[Unknown Exception]" << std::endl;
-    return Server.Response(connection, 500, "Internal Server Error", "");
+    return Server.CORS(connection, 500, "Internal Server Error", "", IP);
   }
   return 200;
 }
