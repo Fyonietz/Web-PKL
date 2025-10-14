@@ -9,22 +9,17 @@ const std::string IP_ORIGIN = "http://192.168.99.159:3000";
 const std::string BACKEND_IP = "http://192.168.99.80:9001";
 
 route("/api/login", login) {
-  const struct mg_request_info *req_info = mg_get_request_info(connection);
-
-  // Automatically handle OPTIONS preflight
-  if (Server.CORS(connection, req_info, IP_ORIGIN))
-    return 1;
 
   // Database Setup
   Sqlite3 db;
   if (!Sqlite_Open()) {
-    return Server.CORS(connection, 500, "Internal Server Error",
-                       R"({"error":"Failed to open DB"})", IP_ORIGIN);
+    return Server.Response(connection, 500, "Internal Server Error",
+                           R"({"error":"Failed to open DB"})");
   }
 
   // Parsing JSON Post
   json post_as_json = json::parse(Server.Read(connection));
-
+  print(post_as_json.dump(4));
   Model<users> user_binder;
   user_binder.bind("nama", &users::nama)
       .bind("password", &users::password)
@@ -53,16 +48,15 @@ route("/api/login", login) {
       std::string role = checker[0]["role"];
       user_mapper.roles = role;
     } else {
-      return Server.CORS(connection, 404, "User Not Found",
-                         R"({"error":"User not found or invalid token"})",
-                         IP_ORIGIN);
+      return Server.Response(connection, 404, "User Not Found",
+                             R"({"error":"User not found or invalid token"}");
     }
 
     // Convert the string role to enum
     user = Auth::strToRole(user_mapper.roles);
     if (user == Auth::Roles::Unknown) {
-      return Server.CORS(connection, 400, "Bad Request",
-                         R"({"error":"Invalid role in database"})", IP_ORIGIN);
+      return Server.Response(connection, 400, "Bad Request",
+                         R"({"error":"Invalid role in database"})");
     }
 
     // Redirect based on the user's role
@@ -97,22 +91,16 @@ route("/api/login", login) {
     std::string response_body =
         "{\"success\": true, \"redirect\": \"" + redirect_url + "\"}";
 
-    return Server.CORS(connection, 200, "OK", response_body, IP_ORIGIN, cookie);
+    return Server.Response(connection, 200, "OK", response_body);
 
   } catch (const std::exception &e) {
     Sqlite_Close();
-    return Server.CORS(connection, 500, "Error",
-                       std::string("{\"error\":\"") + e.what() + "\"}",
-                       IP_ORIGIN);
+    return Server.Response(connection, 500, "Error",
+                           std::string("{\"error\":\"") + e.what() + "\"}");
   }
 }
+
 route("/login", login_pages) {
-  const struct mg_request_info *req_info = mg_get_request_info(connection);
-
-  // Automatically handle OPTIONS
-  if (Server.CORS(connection, req_info, IP_ORIGIN))
-    return 1;
-
   Server.SSR("public/login.html", connection);
   return 200;
 }
