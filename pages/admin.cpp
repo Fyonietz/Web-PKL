@@ -2,6 +2,7 @@
 #include "Phoenix/middleware.hpp"
 #include "civetweb.h"
 #include "handler.hpp"
+#include "json.hpp"
 #include <exception>
 #include <iostream>
 #include <iterator>
@@ -145,17 +146,56 @@ route("/api/admin/user/create", admin_create_user) {
                        R"({"error":"Internal server error"})", IP_ORIGIN);
   }
 }
+route("/api/admin/user/delete", user_delete) {
+  const struct mg_request_info *req_info = mg_get_request_info(connection);
+  nlohmann::json userInfo;
 
+  int authResult = CORSWithAuth(connection, req_info, IP_ORIGIN,
+                                Auth::Roles::Operator, &userInfo);
+
+  if (authResult != 0)
+    return authResult;
+
+  try {
+    nlohmann::json post_as_json =
+        nlohmann::json::parse(Server.Read(connection));
+
+    print(post_as_json.dump(4));
+    Model<users> user_binder;
+    user_binder.bind("id", &users::id);
+
+    auto user_mapper = user_binder.parse_one(post_as_json);
+    Sqlite3 db;
+    if (Sqlite_Open()) {
+      sqlite.DELETE("users").WHERE("id=" + Escape(user_mapper.id)).execute();
+      Sqlite_Close();
+
+      return Server.CORS(
+          connection, 200, "OK",
+          R"({"success":true,"message":"User deleted successfully"})",
+          IP_ORIGIN);
+    }
+  } catch (const nlohmann::json::exception &je) {
+    std::cerr << "[JSON Error] " << je.what() << std::endl;
+    return Server.CORS(connection, 400, "Bad Request",
+                       R"({"error":"Invalid JSON format"})", IP_ORIGIN);
+  } catch (const std::exception &e) {
+    std::cerr << "[Exception] " << e.what() << std::endl;
+    return Server.CORS(connection, 500, "Internal Server Error",
+                       R"({"error":"Internal server error"})", IP_ORIGIN);
+  }
+  return 200;
+}
 // API: Get user lists
 route("/api/admin/user/lists", user_lists) {
   const struct mg_request_info *req_info = mg_get_request_info(connection);
   nlohmann::json userInfo;
 
   // Handle CORS + Auth
-  // int authResult = CORSWithAuth(connection, req_info, IP_ORIGIN,
-  //                               Auth::Roles::Operator, &userInfo);
-  // if (authResult != 0)
-  //   return authResult;
+  int authResult = CORSWithAuth(connection, req_info, IP_ORIGIN,
+                                Auth::Roles::Operator, &userInfo);
+  if (authResult != 0)
+    return authResult;
 
   try {
     Sqlite3 db;
