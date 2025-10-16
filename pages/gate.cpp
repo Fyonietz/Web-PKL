@@ -1,6 +1,8 @@
 #include "../models/models_general.hpp"
+#include "civetweb.h"
 #include "handler.hpp"
 #include <exception>
+#include <optional>
 using namespace Middleware;
 using namespace nlohmann;
 
@@ -9,8 +11,12 @@ const std::string IP_ORIGIN = "http://192.168.99.159:3000";
 const std::string BACKEND_IP = "http://192.168.99.80:9001";
 
 route("/api/login", login) {
+  const struct mg_request_info *req_info = mg_get_request_info(connection);
 
-  // Database Setup
+  // Automatically handle OPTIONS
+  if (Server.CORS(connection, req_info, IP))
+    return 1;
+
   Sqlite3 db;
   if (!Sqlite_Open()) {
     return Server.Response(connection, 500, "Internal Server Error",
@@ -19,7 +25,6 @@ route("/api/login", login) {
 
   // Parsing JSON Post
   json post_as_json = json::parse(Server.Read(connection));
-  print(post_as_json.dump(4));
   Model<users> user_binder;
   user_binder.bind("nama", &users::nama)
       .bind("password", &users::password)
