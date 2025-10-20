@@ -83,3 +83,18 @@ route("/api/perusahaan/create", create_perusahaan) {
   }
   return 200;
 }
+
+route("/api/perusahaan/create/content", perusahaan_content) {
+  const struct mg_request_info *req_info = mg_get_request_info(connection);
+
+  // Automatically handle OPTIONS
+  if (Server.CORS(connection, req_info, IP))
+    return 1;
+  auto authInfo = CheckAuthToken(connection, Auth::Roles::Operator);
+  if (!authInfo) {
+    Server.ResponseAsFile(connection, 401, "Unauthorized", "public/401.html");
+    return 401;
+  }
+
+  return 200;
+}

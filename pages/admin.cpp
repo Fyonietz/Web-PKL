@@ -218,3 +218,6 @@ route("/api/admin/user/lists", user_lists) {
                        R"({"error":"Internal server error"})", IP_ORIGIN);
   }
 }
+
+//API:Update User
+
